@@ -134,9 +134,9 @@ public class AccountService {
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({"StockTrader", "StockViewer"})
-    public List<Account> getAccounts(@Parameter(description="Which page to retrieve", required=false) @QueryParam("page") @DefaultValue("1") int pageNumber,
-                                     @Parameter(description="How many accounts per page", required=false) @QueryParam("pageSize") @DefaultValue("10") int pageSize,
-                                     @Parameter(description="List of owner names to retrieve account details for", required=false)@QueryParam("owners") List<String> owners) {
+    public List<Account> getAccounts(@Parameter(description = "Which page to retrieve", required = false) @QueryParam("page") @DefaultValue("1") int pageNumber,
+                                     @Parameter(description = "How many accounts per page", required = false) @QueryParam("pageSize") @DefaultValue("10") int pageSize,
+                                     @Parameter(description = "List of owner names to retrieve account details for", required = false) @QueryParam("owners") List<String> owners) {
         logger.fine("Entering getAllAccounts");
         logger.fine("Page Number, " + pageNumber + " Page size: " + pageSize + ", owners to find: " + owners);
         List<Account> pageOfAccounts = null; //= new ArrayList<>(15);
