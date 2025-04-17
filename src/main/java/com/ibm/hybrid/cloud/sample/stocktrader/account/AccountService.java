@@ -132,7 +132,7 @@ public class AccountService {
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({"StockTrader", "StockViewer"})
-    public List<Account> getAllAccounts(@QueryParam("page") @DefaultValue("1") int pageNumber, @QueryParam("pageSize") @DefaultValue("10") int pageSize, @QueryParam("owners") List<String> owners) {
+    public List<Account> getAccounts(@QueryParam("page") @DefaultValue("1") int pageNumber, @QueryParam("pageSize") @DefaultValue("10") int pageSize, @QueryParam("owners") List<String> owners) {
         logger.fine("Entering getAllAccounts");
         logger.fine("Page Number, " + pageNumber + " Page size: " + pageSize + ", owners to find: " + owners);
         List<Account> pageOfAccounts = null; //= new ArrayList<>(15);
