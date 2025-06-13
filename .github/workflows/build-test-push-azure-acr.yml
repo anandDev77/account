@@ -85,16 +85,6 @@ jobs:
         java-version: 21
 
     # ---------------------------------------------------------------------------------
-    # Step 3: Build and package the Java application using Maven.
-    # This produces the JAR/WAR file to be included in the Docker image.
-    # ---------------------------------------------------------------------------------
-    - name: Build and package app
-      run: ./mvnw clean install -DskipTests=true \
-            -Dquarkus.container-image.build=true \  
-            -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} \
-            -Dquarkus.container-image.additional-tags=latest
-            -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER
-    # ---------------------------------------------------------------------------------
     # Step 4: Authenticate to Azure using OIDC and the provided secrets.
     # This step is required for all subsequent Azure CLI and ACR operations.
     # ---------------------------------------------------------------------------------
@@ -122,6 +112,16 @@ jobs:
     - name: Build and Push Docker Image to ACR
       run: |
         ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
+        
+    - name: Build and package app
+      run: ./mvnw clean install -DskipTests=true \
+            -Dquarkus.container-image.build=true \  
+            -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} \
+            -Dquarkus.container-image.additional-tags=latest
+            -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER
+    
+    - name: Push app
+      run:
         docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
         docker tag $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
         docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
