@@ -114,11 +114,7 @@ jobs:
         ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
         
     - name: Build and package app
-      run: ./mvnw clean install -DskipTests=true \
-            -Dquarkus.container-image.build=true \
-            -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} \ 
-            -Dquarkus.container-image.additional-tags=latest \
-            -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER
+      run: ./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER
     
     - name: Push app
       run:
