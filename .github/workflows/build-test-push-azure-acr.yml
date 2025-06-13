@@ -57,7 +57,7 @@ env:
   ACR_NAME: kyncjot
   GITOPS_REPO: IBMStockTrader/stocktrader-gitops
   GITOPS_DIR: application
-  IMAGE_NAME: account
+  IMAGE_NAME: cjot/account
   APP_NAME: account
   IMAGE_TAG: ${{ github.sha }}
   GITOPS_USERNAME: ${{ secrets.GITOPS_USERNAME }}
