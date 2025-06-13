@@ -82,7 +82,7 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@v1
       with:
-        java-version: 17
+        java-version: 21
 
     # ---------------------------------------------------------------------------------
     # Step 3: Build and package the Java application using Maven.
