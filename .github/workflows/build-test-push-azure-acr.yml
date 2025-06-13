@@ -115,9 +115,9 @@ jobs:
         
     - name: Build and package app
       run: ./mvnw clean install -DskipTests=true \
-            -Dquarkus.container-image.build=true \  
-            -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} \
-            -Dquarkus.container-image.additional-tags=latest
+            -Dquarkus.container-image.build=true \
+            -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} \ 
+            -Dquarkus.container-image.additional-tags=latest \
             -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER
     
     - name: Push app
