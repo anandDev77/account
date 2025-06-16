@@ -1,28 +1,40 @@
 apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: stocktrader
+  description: Stock Trader
+spec:
+  owner: guests
+---
+apiVersion: backstage.io/v1alpha1
 kind: API
 spec:
   type: openapi
   lifecycle: production
-  owner: user:guest
+  owner: guests
   definition:
     $text: src/main/generated/openapi/openapi.yaml
 metadata:
   name: account-api
   tags:
-    - java
-    - quarkus
----
+  - java
+  - quarkus
+--- 
 apiVersion: backstage.io/v1alpha1
 kind: Component
 spec:
-  type: application
+  # the type must be a service for the CI/CD tab to render unless you change the
+  # EntityPage.tsx to use a ComponentType of `application`
+  type: service
   lifecycle: production
-  owner: user:guest
+  system: stocktrader
+  owner: guests
   providesApis:
-    - account-api
+  - account-api
+  # Temporarily remove these downstream deps.
   dependsOn:
-    - component:default/odm-client-config
-    - component:default/watson-client-config
+  - component:default/odm-client-config
+  - component:default/watson-client-config
 metadata:
   name: account
   labels:
@@ -31,6 +43,7 @@ metadata:
     app.quarkus.io/version: 3.23.3
   annotations:
     backstage.io/source-location: url:https://github.com/IBMStockTrader/account
+    github.com/project-slug: rtclauss/account
   tags:
-    - java
-    - quarkus
+  - java
+  - quarkus
