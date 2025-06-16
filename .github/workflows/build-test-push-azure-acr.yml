@@ -122,49 +122,49 @@ jobs:
           echo "IMAGE_TAG=${{ env.IMAGE_TAG }}"
           docker inspect $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
-  update-gitops-repo:
-    name: Publish image updates to gitops repo
-    runs-on: ubuntu-latest
-    needs: [setup-build-publish-deploy]
-    steps:
-      # ---------------------------------------------------------------------------------
-      # Step 1: Checkout the GitOps repository containing the deployment manifests.
-      # Uses a GitHub PAT for authentication to allow pushing changes.
-      # ---------------------------------------------------------------------------------
-      - name: Checkout gitops repo
-        uses: actions/checkout@v2
-        with:
-          repository: ${{ env.GITOPS_REPO }}
-          path: gitops
-          token: ${{ secrets.GITOPS_TOKEN }}
+  # update-gitops-repo:
+  #   name: Publish image updates to gitops repo
+  #   runs-on: ubuntu-latest
+  #   needs: [setup-build-publish-deploy]
+  #   steps:
+  #     # ---------------------------------------------------------------------------------
+  #     # Step 1: Checkout the GitOps repository containing the deployment manifests.
+  #     # Uses a GitHub PAT for authentication to allow pushing changes.
+  #     # ---------------------------------------------------------------------------------
+  #     - name: Checkout gitops repo
+  #       uses: actions/checkout@v2
+  #       with:
+  #         repository: ${{ env.GITOPS_REPO }}
+  #         path: gitops
+  #         token: ${{ secrets.GITOPS_TOKEN }}
 
-      # ---------------------------------------------------------------------------------
-      # Step 2: Update the application manifest (YAML) with the new image repository and tag.
-      # - Uses yq to update the .spec.account.image.repository and .spec.account.image.tag fields.
-      # - Only commits and pushes if there are actual changes.
-      # - The commit message includes the app name and new version (SHA).
-      # ---------------------------------------------------------------------------------
-      - name: Update application
-        run: |
-          set -x
-          set +e
-          ls -la
-          ls -la gitops
-          cd gitops
-          echo "print yq version"
-          yq --version
-          APP_IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}"
-          VERSION="${{ github.sha }}"
-          APP_NAME="${{ env.APP_NAME }}"
-          yq e ".spec.account.image.repository = \"$APP_IMAGE\"" -i "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
-          yq e ".spec.account.image.tag = \"$VERSION\"" -i "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
-          cat "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
-          if [[ $(git status -s | wc -l) -eq 0 ]]; then
-            echo "No changes"
-            exit 0
-          fi
-          git add "${GITOPS_DIR}/"
-          git config --global user.name 'GH Actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git commit -am "Updates ${APP_NAME} to ${VERSION}"
-          git push https://$GITOPS_USERNAME:$GITOPS_TOKEN@github.com/$GITOPS_REPO
+  #     # ---------------------------------------------------------------------------------
+  #     # Step 2: Update the application manifest (YAML) with the new image repository and tag.
+  #     # - Uses yq to update the .spec.account.image.repository and .spec.account.image.tag fields.
+  #     # - Only commits and pushes if there are actual changes.
+  #     # - The commit message includes the app name and new version (SHA).
+  #     # ---------------------------------------------------------------------------------
+  #     - name: Update application
+  #       run: |
+  #         set -x
+  #         set +e
+  #         ls -la
+  #         ls -la gitops
+  #         cd gitops
+  #         echo "print yq version"
+  #         yq --version
+  #         APP_IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}"
+  #         VERSION="${{ github.sha }}"
+  #         APP_NAME="${{ env.APP_NAME }}"
+  #         yq e ".spec.account.image.repository = \"$APP_IMAGE\"" -i "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
+  #         yq e ".spec.account.image.tag = \"$VERSION\"" -i "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
+  #         cat "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
+  #         if [[ $(git status -s | wc -l) -eq 0 ]]; then
+  #           echo "No changes"
+  #           exit 0
+  #         fi
+  #         git add "${GITOPS_DIR}/"
+  #         git config --global user.name 'GH Actions'
+  #         git config --global user.email 'github-actions@users.noreply.github.com'
+  #         git commit -am "Updates ${APP_NAME} to ${VERSION}"
+  #         git push https://$GITOPS_USERNAME:$GITOPS_TOKEN@github.com/$GITOPS_REPO
