@@ -42,7 +42,7 @@ name: Build, Push to Azure ACR, Gitops
 on:
   push:
     branches:
-      - master
+      - fix-quarkus
     paths-ignore:
       - ".github/**"
   release:
