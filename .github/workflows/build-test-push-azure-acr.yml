@@ -114,8 +114,13 @@ jobs:
           ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
           echo "./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER"
           ./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER
+          docker images
           docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
           docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER"
+          echo "IMAGE_NAME=${{ env.IMAGE_NAME }}"
+          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}"
+          docker inspect $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
   update-gitops-repo:
     name: Publish image updates to gitops repo
