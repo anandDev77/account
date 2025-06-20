@@ -40,6 +40,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.auth.LoginConfig;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import java.io.PrintWriter;
@@ -132,7 +134,9 @@ public class AccountService {
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({"StockTrader", "StockViewer"})
-    public List<Account> getAllAccounts(@QueryParam("page") @DefaultValue("1") int pageNumber, @QueryParam("pageSize") @DefaultValue("10") int pageSize, @QueryParam("owners") List<String> owners) {
+    public List<Account> getAccounts(@Parameter(description = "Which page to retrieve", required = false) @QueryParam("page") @DefaultValue("1") int pageNumber,
+                                     @Parameter(description = "How many accounts per page", required = false) @QueryParam("pageSize") @DefaultValue("10") int pageSize,
+                                     @Parameter(description = "List of owner names to retrieve account details for", required = false) @QueryParam("owners") List<String> owners) {
         logger.fine("Entering getAllAccounts");
         logger.fine("Page Number, " + pageNumber + " Page size: " + pageSize + ", owners to find: " + owners);
         List<Account> pageOfAccounts = null; //= new ArrayList<>(15);
