@@ -131,6 +131,7 @@ jobs:
         ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
         docker build -t $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
           --build-arg GITHUB_SHA="$GITHUB_SHA" .
+        docker images
         docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
         docker tag $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
         docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
