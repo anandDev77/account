@@ -44,7 +44,7 @@ on:
     branches:
       - azureWorkflow
     paths-ignore:
-      - '.github/**'
+      - ".github/**"
   release:
     types: [created]
 
@@ -69,61 +69,53 @@ jobs:
     environment: production
 
     steps:
-    # ---------------------------------------------------------------------------------
-    # Step 1: Checkout the source code for the microservice from the current repository.
-    # This ensures the workflow operates on the latest code for the build and Docker image.
-    # ---------------------------------------------------------------------------------
-    - name: Checkout
-      uses: actions/checkout@v2
+      # ---------------------------------------------------------------------------------
+      # Step 1: Checkout the source code for the microservice from the current repository.
+      # This ensures the workflow operates on the latest code for the build and Docker image.
+      # ---------------------------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    # ---------------------------------------------------------------------------------
-    # Step 2: Set up Java 17 for Maven build. Adjust the version if your app requires a different JDK.
-    # ---------------------------------------------------------------------------------
-    - name: Setup Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 21
+      # ---------------------------------------------------------------------------------
+      # Step 2: Set up Java 17 for Maven build. Adjust the version if your app requires a different JDK.
+      # ---------------------------------------------------------------------------------
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 21
 
-    # ---------------------------------------------------------------------------------
-    # Step 3: Build and package the Java application using Maven.
-    # This produces the JAR/WAR file to be included in the Docker image.
-    # ---------------------------------------------------------------------------------
-    - name: Build and package app
-      run: mvn clean package -DskipTests
+      # ---------------------------------------------------------------------------------
+      # Step 4: Authenticate to Azure using OIDC and the provided secrets.
+      # This step is required for all subsequent Azure CLI and ACR operations.
+      # ---------------------------------------------------------------------------------
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
-    # ---------------------------------------------------------------------------------
-    # Step 4: Authenticate to Azure using OIDC and the provided secrets.
-    # This step is required for all subsequent Azure CLI and ACR operations.
-    # ---------------------------------------------------------------------------------
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        enable-AzPSSession: true
+      # ---------------------------------------------------------------------------------
+      # Step 5: Log in to Azure Container Registry (ACR) using the Azure CLI.
+      # This allows Docker to push images to your private registry.
+      # ---------------------------------------------------------------------------------
+      - name: Azure ACR Login
+        run: az acr login --name $ACR_NAME
 
-    # ---------------------------------------------------------------------------------
-    # Step 5: Log in to Azure Container Registry (ACR) using the Azure CLI.
-    # This allows Docker to push images to your private registry.
-    # ---------------------------------------------------------------------------------
-    - name: Azure ACR Login
-      run: az acr login --name $ACR_NAME
-
-    # ---------------------------------------------------------------------------------
-    # Step 6: Build the Docker image for the microservice and push it to ACR.
-    # - Tags the image with both the commit SHA and 'latest'.
-    # - Uses build args for traceability.
-    # - Pushes both tags to ACR.
-    # ---------------------------------------------------------------------------------
-    - name: Build and Push Docker Image to ACR
-      run: |
-        ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
-        docker build -t $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" .
-        docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-        docker tag $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
-        docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
+      # ---------------------------------------------------------------------------------
+      # Step 6: Build the Docker image for the microservice and push it to ACR.
+      # - Tags the image with both the commit SHA and 'latest'.
+      # - Uses build args for traceability.
+      # - Pushes both tags to ACR.
+      # ---------------------------------------------------------------------------------
+      - name: Build and Push Docker Image to ACR
+        run: |
+          ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
+          echo "./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.name=account"
+          ./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.name=account
+          docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
+          docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
   update-gitops-repo:
     name: Publish image updates to gitops repo
@@ -161,7 +153,7 @@ jobs:
           APP_NAME="${{ env.APP_NAME }}"
           yq e ".spec.account.image.repository = \"$APP_IMAGE\"" -i "${GITOPS_DIR}/stocktrader-azure-eks-cr.yml"
           yq e ".spec.account.image.tag = \"$VERSION\"" -i "${GITOPS_DIR}/stocktrader-azure-eks-cr.yml"
-          cat "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
+          cat "${GITOPS_DIR}/stocktrader-azure-eks-cr.yml"
           if [[ $(git status -s | wc -l) -eq 0 ]]; then
             echo "No changes"
             exit 0
@@ -170,4 +162,4 @@ jobs:
           git config --global user.name 'GH Actions'
           git config --global user.email 'github-actions@users.noreply.github.com'
           git commit -am "Updates ${APP_NAME} to ${VERSION}"
-          git push https://$GITOPS_USERNAME:$GITOPS_TOKEN@github.com/$GITOPS_REPO 
+          git push https://$GITOPS_USERNAME:$GITOPS_TOKEN@github.com/$GITOPS_REPO
