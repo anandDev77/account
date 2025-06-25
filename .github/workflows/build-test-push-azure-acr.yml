@@ -128,8 +128,8 @@ jobs:
           echo "==== BUILDING IMAGE ===="
           
           ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
-          echo "./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.name=account"
-          ./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.name=account
+          echo "./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.name=account -Dquarkus.container-image.group="
+          ./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.name=account -Dquarkus.container-image.group=
 
           echo "==== DOCKER IMAGES AFTER BUILD ===="
           docker images
