@@ -24,7 +24,6 @@
 #    - AZURE_SUBSCRIPTION_ID: Azure subscription ID
 #    - GITOPS_TOKEN: GitHub PAT with write access to your GitOps repo
 #    - GITOPS_USERNAME: Your GitHub username
-#    - ACR_LOGIN_SERVER: e.g., <acr-name>.azurecr.io
 #
 # 5. Set the following environment variables as needed:
 #    - GITOPS_REPO: <your-github-username>/<your-gitops-repo>
@@ -67,6 +66,8 @@ jobs:
     name: Setup, Build, Publish Deploy
     runs-on: ubuntu-latest
     environment: production
+    outputs:
+      acr_login_server: ${{ steps.build_and_output_acr.outputs.acr_login_server }}
 
     steps:
       # ---------------------------------------------------------------------------------
@@ -109,9 +110,11 @@ jobs:
       # - Uses build args for traceability.
       # - Pushes both tags to ACR.
       # ---------------------------------------------------------------------------------
-      - name: Build and Push Docker Image to ACR
+      - name: Build and Push Docker Image to ACR and Output Login Server
+        id: build_and_output_acr
         run: |
           ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
+          echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
           echo "./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.group=cjot -Dquarkus.container-image.name=account"
           ./mvnw clean install -DskipTests=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ env.IMAGE_TAG }} -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.registry=$ACR_LOGIN_SERVER -Dquarkus.container-image.group=cjot -Dquarkus.container-image.name=account
           docker push $ACR_LOGIN_SERVER/${{ env.IMAGE_NAME }}:latest
@@ -148,7 +151,8 @@ jobs:
           cd gitops
           echo "print yq version"
           yq --version
-          APP_IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}"
+          ACR_LOGIN_SERVER="${{ needs.setup-build-publish-deploy.outputs.acr_login_server }}"
+          APP_IMAGE="$ACR_LOGIN_SERVER/${IMAGE_NAME}"
           VERSION="${{ github.sha }}"
           APP_NAME="${{ env.APP_NAME }}"
           yq e ".spec.account.image.repository = \"$APP_IMAGE\"" -i "${GITOPS_DIR}/stocktrader-azure-aks-cr.yml"
