@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     outputs:
-      acr_login_server: ${{ steps.build_and_output_acr.outputs.acr_login_server }}
+      acr_login_server: ${{ steps.build_image.outputs.acr_login_server }}
 
     steps:
       # ---------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ jobs:
       # - Does NOT push the image yet; push happens after security scan.
       # ---------------------------------------------------------------------------------
       - name: Build Docker Image and Output Login Server
-        id: build_and_output_acr
+        id: build_image
         run: |
           ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
           echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
